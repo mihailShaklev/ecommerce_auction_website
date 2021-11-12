@@ -1,0 +1,117 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+  <div class="title">
+       <h3>Listing: {{item.title}}</h3>
+  </div>
+
+<!-- Error message section -->
+
+  {% if error %}
+  <div class="alert alert-danger" role="alert">
+  {{ error }}
+  </div>
+
+  {% endif %}
+
+<!-- Listing description -->
+
+  <div class="listing_page">
+      <div class="image">
+          <img src="{{ item.picture }}" alt="{{ item.title }}">
+      </div>
+      <div class="listing_description">
+          <ul>
+            <li><h3>{{ item.title }}</h3></li>
+            <li><strong>Price:</strong> {{ item.start_bid }}$</li>
+            <li><strong>Highest Bid: </strong> {{ bid.bid__max}}$</li>
+            <li><strong>Description:</strong> {{ item.description }}</li>
+            <li><strong>Added on:</strong> {{ item.time_stamp }}</li>
+            <li><strong>Created By:</strong> {{item.user.username}}</li>
+            <li><strong>Category:</strong> <a href="{% url 'category' item.category %}">{{item.category}}</a></li>
+           </ul>
+      </div>
+  </div>
+
+<!-- Bid, add, remove from/to watchlist and close auction buttons -->
+
+  <div class="listing_page">
+    {% if user.is_authenticated %}
+      {% if item.status == "closed" %}
+         {% if user.id == winnerid %}
+         <div class="congrats">Congrats, {{user.username}}, you won this auction!</div>
+         {% else %}
+         <div class="congrats">This auction is closed!</div>
+         {% endif %}
+      {% else %}
+      <form class="form-group" method="post" action="{% url 'place-bid' item.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="max-bid" value="{{bid.bid__max}}">
+        <input type="hidden" name="start-bid" value="{{item.start_bid}}">
+        {% if user.id != creator %}
+        <input type="text" class="form-group col-md-3" name="bid" placeholder="Bid">
+        <input type="submit" class="btn btn-primary" value="Place Bid">
+        {% else %}
+         <input type="text" class="form-group col-md-3" name="bid" placeholder="Bid" title="Bid field locked, you are the listing owner" disabled>
+         <input type="submit" class="btn btn-primary" value="Place Bid" title="Bid field locked, you are the listing owner" disabled>
+        {% endif %}
+      </form>
+      {% endif %}
+      <div class="buttons-holder">
+      {% if user.id == watcher %}
+      <a class="btn btn-primary" href="{% url 'remove-from-watchlist' item.id %}">Remove from Watchlist</a>
+      {% else %}
+      <a class="btn btn-primary" href="{% url 'add-to-watchlist' item.id %}">Add To Watchlist</a>
+      {% endif %}
+      {% if user.id == creator and item.status == "active" %}
+      <a class="btn btn-primary" href="{% url 'close-auction' item.id %}">Close Auction</a>
+      {% endif %}
+    {% else %}
+    <p><a href="{% url 'login' %}">Log In</a> or <a href="{% url 'register' %}">Register</a> to bid on this item or add it to Watchlist</p>
+    {% endif %}
+      </div>
+  </div>
+
+<!-- Leave a comment section -->
+
+  <div class="comment-section container mt-5">
+    <div class="row d-flex justify-content-center">
+    {% if user.is_authenticated %}
+      <form action="{% url 'post-comment' item.id %}" method="POST" id="form">
+        {% csrf_token %}
+        <div class="form-group">
+        <label for="exampleFormControlTextarea1">Leave a comment:</label>
+        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" cols="50" name="comment"></textarea>
+        <br>
+        <input type="submit" class="btn btn-primary">
+        </div>
+      </form>
+    {% else %}
+    <p><a href="{% url 'login' %}">Log In</a> or <a href="{% url 'register' %}">Register</a> to leave a comment</p>
+    {% endif %}
+    </div>
+  </div>
+
+<!-- In the comments section part of the styling code is taken from https://bbbootstrap.com/snippets/bootstrap-comments-list-font-awesome-icons-and-toggle-button-91650380 -->
+
+  <div class="comment-section container mt-5">
+    <div class="row d-flex justify-content-center">
+      <div class="col-md-8">
+        <div class="headings d-flex justify-content-between align-items-center mb-3">
+          <h5>Comments</h5>
+        </div>
+        {% if comments %}
+         {% for comment in comments %}
+           <div class="card p-3 mt-2">
+             <div class="d-flex justify-content-between align-items-center">
+               <div class="user d-flex flex-row align-items-center"><img src="https://i.imgur.com/hczKIze.jpg" width="30" class="user-img rounded-circle mr-2"><span><small class="font-weight-bold text-primary">{{comment.commenter}}</small> <small class="font-weight-bold">{{comment.comment}}</small></span></div>
+             </div>
+           </div>
+         {% endfor %}
+        {% else %}
+        <h5>No Comments Yet</h5>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div class="title">
+       <h3>Category: {{category}}</h3>
+    </div>
+    <!-- List of the items in a category -->
+    <div class="row">
+    {% if listings %}
+       {% for item in listings %}
+           <div class="item">
+            <a href="{% url 'listing-page' item.id %}">
+              <div class="image">
+                 <img src="{{ item.picture }}" alt="{{ item.title }}">
+              </div>
+              <div class="description">
+                 <ul>
+                        <li><h3>{{ item.title }}</h3></li>
+                        <li><strong>Price:</strong> {{ item.start_bid }}$</li>
+                        <li><strong>Description:</strong> {{ item.description }}</li>
+                        <li><strong>Added On:</strong> {{ item.time_stamp }}</li>
+                    </ul>
+              </div>
+             </a>
+           </div>
+       {% endfor %}
+    {% else %}
+        <h2>No listings to show</h2>
+    {% endif %}
+   </div>
+{% endblock %}
